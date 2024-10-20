@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header'; 
 import Footer from '../components/Footer';
 import { 
@@ -37,7 +37,7 @@ const AddRecipe = () => {
   const onFinish = (values) => {
     console.log('Form values:', values);
     message.success('Recipe added successfully!');
-  navigate('/')
+     navigate = ('/')
     // Here you would typically send the data to your backend
   };
 
