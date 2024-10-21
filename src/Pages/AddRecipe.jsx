@@ -16,10 +16,16 @@ import {
 } from 'antd';
 import { CameraOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 const { Content } = Layout;
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
+
+
 
 const AddRecipe = () => {
   const [form] = Form.useForm();
@@ -34,13 +40,42 @@ const AddRecipe = () => {
 
   let navigate = useNavigate();
 
-  const onFinish = (values) => {
-    console.log('Form values:', values);
-    message.success('Recipe added successfully!');
-     navigate = ('/')
-    // Here you would typically send the data to your backend
-  };
+  const onFinish = async (values) => {
+    const auth = getAuth();
+    const user = auth.currentUser;
 
+    if (!user) {
+      message.error('You must be logged in to add a recipe');
+      return;
+    }
+
+    try {
+      let imageUrl = null;
+      if (values.image && values.image[0]) {
+        const file = values.image[0].originFileObj;
+        const storage = getStorage();
+        const storageRef = ref(storage, `recipe-images/${Date.now()}_${file.name}`);
+        await uploadBytes(storageRef, file);
+        imageUrl = await getDownloadURL(storageRef);
+      }
+
+      const db = getFirestore();
+      await addDoc(collection(db, 'recipes'), {
+        ...values,
+        imageUrl,
+        userId: user.uid,
+        createdAt: new Date()
+      });
+
+      message.success('Recipe added successfully!');
+      navigate('/profile');
+    } catch (error) {
+      console.error('Error adding recipe:', error);
+      message.error('Failed to add recipe');
+    }
+  };
+};
+{
   return (
     <Layout className="min-h-screen bg-white">
       <Header />
@@ -181,7 +216,7 @@ const AddRecipe = () => {
             </Form.Item>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit" style={{ backgroundColor: '#B55D51', borderColor: '#B55D51' }}>
+              <Button onClick={onFinish} type="primary" htmlType="submit" style={{ backgroundColor: '#B55D51', borderColor: '#B55D51' }}>
                 Save Recipe
               </Button>
             </Form.Item>
@@ -191,6 +226,6 @@ const AddRecipe = () => {
       <Footer />
     </Layout>
   );
-};
+}
 
 export default AddRecipe;
