@@ -1,16 +1,16 @@
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../Context/AuthContext";
-import { Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem  } from "@nextui-org/react";
+import { Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Spinner  } from "@nextui-org/react";
 import { signOut } from "firebase/auth";
 import { auth } from "../utils/firebase";
 import { useContext} from "react";
+import { ImSpoonKnife } from "react-icons/im";
 function Header() {
 
-  const { user, setUser } = useContext(AuthContext);
-  const navigate = useNavigate();
-
+  const { user, setUser } = useContext(AuthContext) || {};
+ 
   const isLoggedIn = user?.isLogin;
-
+  const navigate = useNavigate();
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -20,14 +20,18 @@ function Header() {
       console.log("Error Sign Out", error);
     }
   };
+  if (!user || user === null) {
+    return <>
+    <Spinner />
+    </>;
+  }
 
   return (
     <>
       <div className="container mx-auto max-w-screen-lg px-4 flex justify-between items-center p-5 bg-white">
         {/* Logo and Brand Name */}
         <div className="flex items-center">
-        <img className="w-[50px] h-[50px] text-white rounded-full" src="https://logowik.com/content/uploads/images/755_food.jpg" />
-
+          <ImSpoonKnife/>
           <span className="font-bold text-2xl">
             Perfect
             <span className="text-[#B55D51] font-bold">Food</span>
@@ -52,6 +56,7 @@ function Header() {
 
         {/* Auth Buttons */}
         {isLoggedIn ? (
+          user.userInfo.photoURL ? (
             <Dropdown>
               <DropdownTrigger>
                 <Avatar
@@ -61,14 +66,14 @@ function Header() {
                 />
               </DropdownTrigger>
               <DropdownMenu aria-label="User menu">
-                <DropdownItem key="profile">Profile</DropdownItem>
-                <DropdownItem key="settings">Settings</DropdownItem>
+                  <DropdownItem href="/profile" key="profile">Profile</DropdownItem>
                 <DropdownItem key="logout" color="danger" onPress={handleSignOut}>
                   Log Out
                 </DropdownItem>
               </DropdownMenu>
             </Dropdown>
-          ) : (
+          ) : null
+        ): (
             <>
               <div className="flex items-center space-x-2">
           <Link to="/login">
