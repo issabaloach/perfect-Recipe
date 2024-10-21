@@ -32,7 +32,7 @@ const AddRecipe = () => {
       .catch(error => console.error('Error fetching tags:', error));
   }, []);
 
-  const navigate = useNavigate();
+  let navigate = useNavigate();
 
   const onFinish = (values) => {
     console.log('Form values:', values);

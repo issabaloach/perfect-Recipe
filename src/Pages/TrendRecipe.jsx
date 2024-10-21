@@ -46,7 +46,7 @@ const TrendingRecipes = () => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {displayedRecipes.map((recipe) => (
-          <Link to={`/recipe/${recipe.id}`} key={recipe.id} className="bg-white rounded-lg shadow-md overflow-hidden shadow-md">
+          <Link to={`/recipe/${recipe.id}`} key={recipe.id} className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-in-out transform hover:shadow-lg hover:scale-105">
             <img src={recipe.image} alt={recipe.name} className="w-full h-48 object-cover" />
             <div className="p-4">
               <h3 className="font-semibold mb-2">{recipe.name}</h3>

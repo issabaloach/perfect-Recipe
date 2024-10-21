@@ -38,9 +38,9 @@ const PopularCategories = () => {
           </button>
         )}
       </div>
-      <div className=" grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className=" grid grid-cols-2 md:grid-cols-4 gap-4 ">
         {displayedCategories.map((category, index) => (
-          <div key={index} className="text-center ">
+          <div key={index} className="text-center bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-in-out transform hover:shadow-lg hover:scale-105 ">
             <img 
               src={category.image} 
               alt={category.mealType} 
