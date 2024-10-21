@@ -15,12 +15,12 @@ function HeroSection() {
           wide variety of mouth-watering recipes for every skill level and
           occasion.
         </p>
-        <Link to="/Pages/Auth/SignUp">
+        <Link to="/signup">
           <button className="text-sm bg-[#B55D51] text-white px-6 py-3 rounded-md flex items-center ">
             Sign Up
           </button>
         </Link>
-        <Link to="/Pages/Auth/SignIn">
+        <Link to="/login">
           <p>
             Do You Have An Account{" "}
             <span className="font-bold text-[#B55D51]">Log In</span>
