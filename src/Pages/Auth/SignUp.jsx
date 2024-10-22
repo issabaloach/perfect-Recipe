@@ -1,18 +1,23 @@
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Input from "antd/es/input/Input";
-import { Button } from "antd";
+import { Button, Upload } from "antd";
 import { FaFacebookF } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
+import { UploadOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   FacebookAuthProvider,
+  updateProfile
 } from "firebase/auth";
 import { auth } from "../../utils/firebase";
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from "react-router";
+
+const storage = getStorage();
 
 function SignUp() {
   const navigate = useNavigate();
@@ -21,9 +26,32 @@ function SignUp() {
   const [email, setEmail] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleImageUpload = (info) => {
+    if (info.file.originFileObj) {
+      setProfileImage(info.file.originFileObj);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(info.file.originFileObj);
+      setImagePreview(previewUrl);
+    }
+  };
+
+  const uploadProfileImage = async (user) => {
+    if (!profileImage) return null;
+    
+    const storageRef = ref(storage, `profile-images/${user.uid}`);
+    await uploadBytes(storageRef, profileImage);
+    const photoURL = await getDownloadURL(storageRef);
+    return photoURL;
+  };
 
   const handleSignUp = async () => {
     try {
+      setLoading(true);
+
       if (password !== confirmPassword) {
         alert("Passwords do not match");
         return;
@@ -34,13 +62,30 @@ function SignUp() {
         return;
       }
 
-      await createUserWithEmailAndPassword(auth, email, password);
+      // Create user account
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Upload profile image if one was selected
+      let photoURL = null;
+      if (profileImage) {
+        photoURL = await uploadProfileImage(user);
+      }
+
+      // Update user profile with username and photo URL
+      await updateProfile(user, {
+        displayName: username,
+        photoURL: photoURL
+      });
+
       alert("Sign up successful!");
+      navigate("/");
     } catch (error) {
       console.error("Error signing up:", error);
       alert("Sign up failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    navigate("/");
   };
 
   const handleGoogleSignUp = async () => {
@@ -48,11 +93,11 @@ function SignUp() {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       alert("Google sign up successful!");
+      navigate("/");
     } catch (error) {
       console.error("Error signing up with Google:", error);
       alert("Google sign up failed. Please try again.");
     }
-    navigate("/");
   };
 
   const handleFacebookSignUp = async () => {
@@ -60,11 +105,11 @@ function SignUp() {
       const provider = new FacebookAuthProvider();
       await signInWithPopup(auth, provider);
       alert("Facebook sign up successful!");
+      navigate("/");
     } catch (error) {
       console.error("Error signing up with Facebook:", error);
       alert("Facebook sign up failed. Please try again.");
     }
-    navigate("/");
   };
 
   return (
@@ -104,6 +149,29 @@ function SignUp() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
+            
+            {imagePreview && (
+              <div className="mb-4">
+                <img 
+                  src={imagePreview} 
+                  alt="Profile Preview" 
+                  className="w-24 h-24 rounded-full object-cover mx-auto"
+                />
+              </div>
+            )}
+
+            <Upload
+              onChange={handleImageUpload}
+              maxCount={1}
+              className="w-full"
+              accept="image/*"
+              showUploadList={true}
+              beforeUpload={() => true}
+            >
+              <Button icon={<UploadOutlined />} className="w-full">
+                Upload Profile Picture
+              </Button>
+            </Upload>
           </div>
 
           <div className="flex items-center mt-4">
@@ -120,6 +188,7 @@ function SignUp() {
             type="primary"
             className="bg-[#B55D51] border-none mt-4"
             onClick={handleSignUp}
+            loading={loading}
           >
             Sign Up
           </Button>
@@ -127,8 +196,9 @@ function SignUp() {
           <div className="flex items-center mt-4">
             <Button
               type="default"
-              className=" mr-2 flex items-center"
+              className="mr-2 flex items-center"
               onClick={handleGoogleSignUp}
+              disabled={loading}
             >
               <FcGoogle className="mr-2" /> Sign Up with Google
             </Button>
@@ -136,8 +206,9 @@ function SignUp() {
               type="default"
               className="flex items-center"
               onClick={handleFacebookSignUp}
+              disabled={loading}
             >
-              <FaFacebookF className=" mr-2" /> Sign Up with Facebook
+              <FaFacebookF className="mr-2" /> Sign Up with Facebook
             </Button>
           </div>
         </div>

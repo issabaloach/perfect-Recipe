@@ -13,13 +13,22 @@ function Profile() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [profileImageError, setProfileImageError] = useState(false);
   const navigate = useNavigate();
   const storage = getStorage();
 
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
+        // Try to fetch the latest profile image URL
+        try {
+          const imageRef = ref(storage, `profile-images/${currentUser.uid}`);
+          const photoURL = await getDownloadURL(imageRef);
+          currentUser.photoURL = photoURL;
+        } catch (error) {
+          console.log("No custom profile image found");
+        }
         setUser(currentUser);
         fetchUserRecipes(currentUser.uid);
       } else {
@@ -50,6 +59,10 @@ function Profile() {
     }
   };
 
+  const handleImageError = () => {
+    setProfileImageError(true);
+  };
+
   const deleteRecipe = async (recipeId, imageUrl) => {
     try {
       // Delete from Firestore
@@ -64,7 +77,6 @@ function Profile() {
             await deleteObject(imageRef);
           } catch (storageError) {
             console.error("Error deleting image:", storageError);
-            // Continue with recipe deletion even if image deletion fails
           }
         }
       }
@@ -108,9 +120,10 @@ function Profile() {
           <div className="bg-white shadow-md rounded-lg p-6 mb-6">
             <div className="flex items-center mb-4">
               <img 
-                src={user.photoURL || 'https://via.placeholder.com/100'} 
+                src={profileImageError ? 'https://c8.alamy.com/comp/2AER1CC/icon-icon-in-trendy-flat-style-isolated-on-background-logo-app-ui-profile-picture-person-avatar-user-eps-10-2AER1CC.jpg' : (user.photoURL || 'https://c8.alamy.com/comp/2AER1CC/icon-icon-in-trendy-flat-style-isolated-on-background-logo-app-ui-profile-picture-person-avatar-user-eps-10-2AER1CC.jpg')}
                 alt="Profile" 
-                className="w-20 h-20 rounded-full mr-4"
+                className="w-20 h-20 rounded-full mr-4 object-cover"
+                onError={handleImageError}
               />
               <div>
                 <h2 className="text-xl font-semibold">{user.displayName}</h2>
@@ -137,7 +150,7 @@ function Profile() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recipes.map(recipe => (
-              <div key={recipe.id} className="bg-white shadow-md rounded-lg overflow-hidden transition-all duration-300 ease-in-out transform hover:shadow-lg hover:scale-105 ">
+              <div key={recipe.id} className="bg-white shadow-md rounded-lg overflow-hidden transition-all duration-300 ease-in-out transform hover:shadow-lg hover:scale-105">
                 <img 
                   src={recipe.imageUrl || 'https://via.placeholder.com/300x200'} 
                   alt={recipe.title} 

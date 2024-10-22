@@ -16,8 +16,6 @@ import {
 } from 'antd';
 import { CameraOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 
-import { db } from '../utils/firebase';
-
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -31,6 +29,7 @@ const AddRecipe = () => {
   const [form] = Form.useForm();
   const [tags, setTags] = useState([]);
   const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,7 +52,7 @@ const AddRecipe = () => {
       message.error('You must be logged in to add a recipe');
       return;
     }
-
+    setLoading(true);
     try {
       let imageUrl = null;
       if (imageFile) {
@@ -82,6 +81,8 @@ const AddRecipe = () => {
     } catch (error) {
       console.error('Error adding recipe:', error);
       message.error('Failed to add recipe');
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -228,13 +229,17 @@ const AddRecipe = () => {
 
             <Form.Item name="collection" label="Collection:">
               <Select style={{ width: 200 }}>
-                <Option value="collection1">1 Collection selected</Option>
+                <Option value="collection1">Fast Food</Option>
+                <Option value="collection2">Snacks</Option>
+                <Option value="collection3">Deserts</Option>
+                <Option value="collection4">Healthy Diets</Option>
+                <Option value="collection5">Salad</Option>
               </Select>
             </Form.Item>
 
             <Form.Item>
               <Button type="primary" htmlType="submit" style={{ backgroundColor: '#B55D51', borderColor: '#B55D51' }}>
-                Save Recipe
+              {loading ? 'Adding Recipe...' : 'Save Recipe'}
               </Button>
             </Form.Item>
           </Form>

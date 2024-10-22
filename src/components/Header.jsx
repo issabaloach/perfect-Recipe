@@ -26,6 +26,8 @@ function Header() {
     </>;
   }
 
+  
+
   return (
     <>
       <div className="container mx-auto max-w-screen-lg px-4 flex justify-between items-center p-5 bg-white">
@@ -58,20 +60,20 @@ function Header() {
         {isLoggedIn ? (
           user.userInfo.photoURL ? (
             <Dropdown>
-              <DropdownTrigger>
-                <Avatar
-                  src={user.userInfo.photoURL}
-                  size="md"
-                  className="cursor-pointer"
-                />
-              </DropdownTrigger>
-              <DropdownMenu aria-label="User menu">
-                  <DropdownItem href="/profile" key="profile">Profile</DropdownItem>
-                <DropdownItem key="logout" color="danger" onPress={handleSignOut}>
-                  Log Out
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+            <DropdownTrigger>
+              <Avatar
+                src={user?.userInfo?.photoURL || '/default-avatar.png'} 
+                className="cursor-pointer rounded-full w-[100px] h-[40px]"
+               
+              />
+            </DropdownTrigger>
+            <DropdownMenu aria-label="User menu">
+              <DropdownItem href="/profile" key="profile">Profile</DropdownItem>
+              <DropdownItem key="logout" color="danger" onPress={handleSignOut}>
+                Log Out
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
           ) : null
         ): (
             <>
