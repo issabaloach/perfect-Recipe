@@ -71,8 +71,12 @@ function SignUp() {
     <div>
       <Header />
 
-      <div className="container mx-auto max-w-screen-lg px-4 mt-8 flex flex-row">
-        <img src="/src/assets/loginSignUp.PNG" alt="" />
+      <div className="container mx-auto mt-9 mb-9 max-w-screen-lg px-4 mt-8 flex flex-row">
+        <img
+          src="https://www.santani.com/wp-content/uploads/elementor/thumbs/10-eating-habits-for-healthy-lifestyle-q2voqrxndqf2obo8xd9y2dsajucknjyfvfb295zl9s.jpg"
+          alt=""
+          className="w-[450px] h-[500px]"
+        />
         <div className="ml-5 mt-6">
           <h1 className="text-3xl font-bold text-gray-900">
             Want To Join Our Family
@@ -100,7 +104,6 @@ function SignUp() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            
           </div>
 
           <div className="flex items-center mt-4">

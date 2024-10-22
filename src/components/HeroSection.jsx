@@ -63,7 +63,7 @@ function HeroSection() {
       </div>
       <div className="absolute bottom-0 right-0 w-1/2 h-1/2  rounded-tl-md"></div>
       <img
-        src="/src/assets/hero-dish.png"
+        src="https://pallifood.com/wp-content/uploads/2019/08/ace218a4f4b81019717b67dffe6dfa45.png"
         alt="Featured Dish"
         className="absolute  h-[300px] bottom-8 right-8 rounded shadow-lg"
       />

@@ -5,12 +5,17 @@ import { Button } from "antd";
 import { FaFacebookF } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+} from "firebase/auth";
 import { auth } from "../../utils/firebase";
 import { useNavigate } from "react-router";
 
 function SignIn() {
-  const navigate = useNavigate()  
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
 
@@ -23,7 +28,7 @@ function SignIn() {
       alert("Sign in failed. Please try again.");
     }
 
-     navigate('/')
+    navigate("/");
   };
 
   const handleGoogleSignIn = async () => {
@@ -35,7 +40,7 @@ function SignIn() {
       console.error("Error signing in with Google:", error);
       alert("Google sign in failed. Please try again.");
     }
-    navigate('/')
+    navigate("/");
   };
 
   const handleFacebookSignIn = async () => {
@@ -47,17 +52,19 @@ function SignIn() {
       console.error("Error signing in with Facebook:", error);
       alert("Facebook sign in failed. Please try again.");
     }
-    navigate('/')
+    navigate("/");
   };
-
-
 
   return (
     <div>
       <Header />
 
-      <div className="container mx-auto max-w-screen-lg px-4 mt-8 flex flex-row">
-        <img src="/src/assets/loginSignUp.PNG" alt="" />
+      <div className="container mx-auto max-w-screen-lg mt-9 mb-10 px-4 mt-8 flex flex-row">
+        <img
+          src="https://www.santani.com/wp-content/uploads/elementor/thumbs/10-eating-habits-for-healthy-lifestyle-q2voqrxndqf2obo8xd9y2dsajucknjyfvfb295zl9s.jpg"
+          alt=""
+          className="w-[450px] h-[500px]"
+        />
         <div className="ml-5 mt-6">
           <h1 className="text-3xl font-bold text-gray-900">Welcome Back!</h1>
           <div className="flex flex-col gap-3 mt-5">
