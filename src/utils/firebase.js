@@ -10,7 +10,7 @@ import {
   getAuth,
 } from "firebase/auth";
 
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore} from "firebase/firestore";
 
 import { getAnalytics } from "firebase/analytics";
 
@@ -30,4 +30,4 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
-export {auth, db};
+export {auth, db}

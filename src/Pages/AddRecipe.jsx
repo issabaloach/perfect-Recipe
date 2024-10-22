@@ -16,6 +16,8 @@ import {
 } from 'antd';
 import { CameraOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 
+import { db } from '../utils/firebase';
+
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -25,11 +27,11 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-
-
 const AddRecipe = () => {
   const [form] = Form.useForm();
   const [tags, setTags] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('https://dummyjson.com/recipes/tags')
@@ -38,7 +40,10 @@ const AddRecipe = () => {
       .catch(error => console.error('Error fetching tags:', error));
   }, []);
 
-  let navigate = useNavigate();
+  const handleImageUpload = ({ file }) => {
+    setImageFile(file);
+    return false;
+  };
 
   const onFinish = async (values) => {
     const auth = getAuth();
@@ -51,21 +56,26 @@ const AddRecipe = () => {
 
     try {
       let imageUrl = null;
-      if (values.image && values.image[0]) {
-        const file = values.image[0].originFileObj;
+      if (imageFile) {
         const storage = getStorage();
-        const storageRef = ref(storage, `recipe-images/${Date.now()}_${file.name}`);
-        await uploadBytes(storageRef, file);
+        const storageRef = ref(storage, `recipe-images/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(storageRef, imageFile);
         imageUrl = await getDownloadURL(storageRef);
       }
 
-      const db = getFirestore();
-      await addDoc(collection(db, 'recipes'), {
+      // Create a clean copy of the form values without the File object
+      const recipeData = {
         ...values,
         imageUrl,
         userId: user.uid,
         createdAt: new Date()
-      });
+      };
+
+      // Remove the image field since we're using imageUrl instead
+      delete recipeData.image;
+
+      const db = getFirestore();
+      await addDoc(collection(db, 'recipes'), recipeData);
 
       message.success('Recipe added successfully!');
       navigate('/profile');
@@ -74,8 +84,7 @@ const AddRecipe = () => {
       message.error('Failed to add recipe');
     }
   };
-};
-{
+
   return (
     <Layout className="min-h-screen bg-white">
       <Header />
@@ -91,6 +100,14 @@ const AddRecipe = () => {
               <Upload
                 listType="picture-card"
                 showUploadList={false}
+                customRequest={handleImageUpload}
+                beforeUpload={(file) => {
+                  const isImage = file.type.startsWith('image/');
+                  if (!isImage) {
+                    message.error('You can only upload image files!');
+                  }
+                  return isImage;
+                }}
               >
                 <div>
                   <PlusOutlined />
@@ -216,7 +233,7 @@ const AddRecipe = () => {
             </Form.Item>
 
             <Form.Item>
-              <Button onClick={onFinish} type="primary" htmlType="submit" style={{ backgroundColor: '#B55D51', borderColor: '#B55D51' }}>
+              <Button type="primary" htmlType="submit" style={{ backgroundColor: '#B55D51', borderColor: '#B55D51' }}>
                 Save Recipe
               </Button>
             </Form.Item>
@@ -226,6 +243,6 @@ const AddRecipe = () => {
       <Footer />
     </Layout>
   );
-}
+};
 
 export default AddRecipe;
