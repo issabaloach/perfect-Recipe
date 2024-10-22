@@ -63,6 +63,8 @@ function Header() {
             <DropdownTrigger>
               <Avatar
                 src={user?.userInfo?.photoURL || '/default-avatar.png'} 
+                alt={user?.userInfo?.displayName || 'User Avatar'}
+                size="md"
                 className="cursor-pointer rounded-full w-[100px] h-[40px]"
                
               />

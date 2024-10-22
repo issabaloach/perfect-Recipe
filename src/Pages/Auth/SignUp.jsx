@@ -154,7 +154,7 @@ function SignUp() {
               <div className="mb-4">
                 <img 
                   src={imagePreview} 
-                  alt="Profile Preview" 
+                  alt="Add Image" 
                   className="w-24 h-24 rounded-full object-cover mx-auto"
                 />
               </div>
@@ -165,8 +165,8 @@ function SignUp() {
               maxCount={1}
               className="w-full"
               accept="image/*"
-              showUploadList={true}
-              beforeUpload={() => true}
+              showUploadList={false}
+              beforeUpload={() => false}
             >
               <Button icon={<UploadOutlined />} className="w-full">
                 Upload Profile Picture
