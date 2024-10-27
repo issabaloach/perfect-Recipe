@@ -1,11 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../Context/AuthContext";
-import { 
-  Avatar, 
-  Dropdown, 
-  DropdownTrigger, 
-  DropdownMenu, 
-  DropdownItem, 
+import {
+  Avatar,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
   Spinner,
   Navbar,
   NavbarBrand,
@@ -96,7 +96,7 @@ function Header() {
       </Link>
       <Link to="/signup">
         <Button 
-          className="border bg-[#B55D51] text-white"
+          className="text-sm bg-[#B55D51] text-white px-5 py-2 rounded-md"
           size="sm"
         >
           Sign Up
@@ -146,10 +146,7 @@ function Header() {
               <Avatar
                 as="button"
                 src={getProfileImage()}
-                classNames={ {
-                  base: "transition-transform cursor-pointer",
-                  img: "object-cover",
-                }}
+                className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-transform cursor-pointer"
                 imgProps={{
                   onError: (e) => {
                     e.target.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7vB-49_BT-dirwttYZaeE_VByjlQ3raVJZg&s';

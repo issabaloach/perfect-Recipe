@@ -88,9 +88,9 @@ function SignIn() {
       
       <Header />
 
-      <div className="container mx-auto max-w-screen-lg mt-9 mb-10 px-4 mt-8 flex flex-row">
+      <div className="container mx-auto max-w-screen-lg mt-9 mb-10 px-4 mt-8 flex justify-center flex-row">
         <img
-          src="https://www.santani.com/wp-content/uploads/elementor/thumbs/10-eating-habits-for-healthy-lifestyle-q2voqrxndqf2obo8xd9y2dsajucknjyfvfb295zl9s.jpg"
+          src="https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8cmVjaXBlfGVufDB8fDB8fHww"
           alt=""
           className="w-[450px] h-[500px]"
         />

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Image, Button, Spin } from "antd";
 import { ArrowLeft } from "lucide-react";
 import Header from '../components/Header';
-import { data } from "autoprefixer";
 import Footer from "../components/Footer";
 
 function RecipeDetail() {

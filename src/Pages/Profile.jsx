@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { getStorage, ref, deleteObject } from 'firebase/storage';
+import { getStorage, ref, deleteObject, getDownloadURL } from 'firebase/storage';
 import { db } from '../utils/firebase';
 import { Spinner } from '@nextui-org/react';
 
@@ -17,27 +17,44 @@ function Profile() {
   const navigate = useNavigate();
   const storage = getStorage();
 
+  const DEFAULT_PROFILE_IMAGE = 'https://c8.alamy.com/comp/2AER1CC/icon-icon-in-trendy-flat-style-isolated-on-background-logo-app-ui-profile-picture-person-avatar-user-eps-10-2AER1CC.jpg';
+
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        // Try to fetch the latest profile image URL
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
         try {
-          const imageRef = ref(storage, `profile-images/${currentUser.uid}`);
+          const imageRef = ref(storage, `profile-images/${user.uid}`);
           const photoURL = await getDownloadURL(imageRef);
-          currentUser.photoURL = photoURL;
+          setUser({
+            ...user,
+            photoURL: photoURL
+          });
         } catch (error) {
-          console.log("No custom profile image found");
+          // Handle 404 error specifically
+          if (error.code === 'storage/object-not-found') {
+            setUser({
+              ...user,
+              photoURL: DEFAULT_PROFILE_IMAGE
+            });
+          } else {
+            console.error("Error fetching profile image:", error);
+            setUser({
+              ...user,
+              photoURL: DEFAULT_PROFILE_IMAGE
+            });
+          }
+          setProfileImageError(true);
         }
-        setUser(currentUser);
-        fetchUserRecipes(currentUser.uid);
+        
+        fetchUserRecipes(user.uid);
       } else {
         navigate('/login');
       }
     });
 
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, storage]);
 
   const fetchUserRecipes = async (userId) => {
     try {
@@ -92,7 +109,7 @@ function Profile() {
       <div className="container mx-auto max-w-screen-lg px-4">
         <Header />
         <div className="my-8 text-center">
-          <Spinner className='text-xl'/>
+          <Spinner className="text-xl"/>
         </div>
         <Footer />
       </div>
@@ -120,7 +137,7 @@ function Profile() {
           <div className="bg-white shadow-md rounded-lg p-6 mb-6">
             <div className="flex items-center mb-4">
               <img 
-                src={profileImageError ? 'https://c8.alamy.com/comp/2AER1CC/icon-icon-in-trendy-flat-style-isolated-on-background-logo-app-ui-profile-picture-person-avatar-user-eps-10-2AER1CC.jpg' : (user.photoURL || 'https://c8.alamy.com/comp/2AER1CC/icon-icon-in-trendy-flat-style-isolated-on-background-logo-app-ui-profile-picture-person-avatar-user-eps-10-2AER1CC.jpg')}
+                src={profileImageError ? DEFAULT_PROFILE_IMAGE : (user.photoURL || DEFAULT_PROFILE_IMAGE)}
                 alt="Profile" 
                 className="w-20 h-20 rounded-full mr-4 object-cover"
                 onError={handleImageError}

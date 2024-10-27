@@ -14,7 +14,7 @@ import {
   updateProfile
 } from "firebase/auth";
 import { auth } from "../../utils/firebase";
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from "react-router";
 
 const storage = getStorage();
@@ -59,26 +59,32 @@ function SignUp() {
   const uploadProfileImage = async (user) => {
     if (!profileImage) return null;
     
-    try {
+    return new Promise((resolve, reject) => {
       // Create a reference to the file in Firebase Storage
       const storageRef = ref(storage, `profile-images/${user.uid}/${Date.now()}-${profileImage.name}`);
-      
-      // Create file metadata including the content type
-      const metadata = {
-        contentType: profileImage.type,
-      };
-      
-      // Upload the file and metadata
-      const uploadTask = await uploadBytes(storageRef, profileImage, metadata);
-      
-      // Get the download URL
-      const photoURL = await getDownloadURL(uploadTask.ref);
-      
-      return photoURL;
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      throw new Error("Failed to upload profile image");
-    }
+      const uploadTask = uploadBytesResumable(storageRef, profileImage);
+
+      // Monitor the upload progress
+      uploadTask.on('state_changed', 
+        (snapshot) => {
+          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          setUploadProgress(progress);
+        }, 
+        (error) => {
+          console.error("Error uploading image:", error);
+          reject("Failed to upload profile image");
+        }, 
+        async () => {
+          // Get the download URL after successful upload
+          try {
+            const photoURL = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(photoURL);
+          } catch (error) {
+            reject("Failed to get profile image URL");
+          }
+        }
+      );
+    });
   };
 
   const handleSignUp = async () => {
@@ -115,21 +121,12 @@ function SignUp() {
         photoURL: photoURL
       });
 
-      // Verify the profile was updated successfully
-      if (user.displayName !== username || (photoURL && user.photoURL !== photoURL)) {
-        throw new Error("Failed to update user profile");
-      }
-
-      // Force refresh the auth token to ensure new profile data is available
-      await user.reload();
-
-      // Success - wait briefly to show success state
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Success - navigate to home
       navigate("/");
     } catch (error) {
       console.error("SignUp error:", error);
       setError(error.message);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setTimeout(() => setError(""), 3000); // Clear error after 3 seconds
     } finally {
       setLoading(false);
     }
@@ -141,11 +138,10 @@ function SignUp() {
       setError("");
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      await new Promise(resolve => setTimeout(resolve, 1000));
       navigate("/");
     } catch (error) {
       setError(error.message);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setTimeout(() => setError(""), 3000);
     } finally {
       setLoading(false);
     }
@@ -157,11 +153,10 @@ function SignUp() {
       setError("");
       const provider = new FacebookAuthProvider();
       await signInWithPopup(auth, provider);
-      await new Promise(resolve => setTimeout(resolve, 1000));
       navigate("/");
     } catch (error) {
       setError(error.message);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setTimeout(() => setError(""), 3000);
     } finally {
       setLoading(false);
     }
@@ -184,11 +179,11 @@ function SignUp() {
         </div>
       </Modal>
 
-      <Header />
+      <Header avatar={imagePreview || undefined} />
 
-      <div className="container mx-auto mt-9 mb-9 max-w-screen-lg px-4 mt-8 flex flex-row">
+      <div className="container mx-auto mt-9 mb-9 max-w-screen-lg px-4 mt-8 flex justify-center items-center flex-row">
         <img
-          src="https://www.santani.com/wp-content/uploads/elementor/thumbs/10-eating-habits-for-healthy-lifestyle-q2voqrxndqf2obo8xd9y2dsajucknjyfvfb295zl9s.jpg"
+          src="https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8cmVjaXBlfGVufDB8fDB8fHww"
           alt=""
           className="w-[450px] h-[500px]"
         />
@@ -258,7 +253,7 @@ function SignUp() {
               className="w-full"
               accept="image/*"
               showUploadList={false}
-              beforeUpload={() => false}
+              beforeUpload={() => true}
               disabled={loading}
             >
               <Button icon={<UploadOutlined />} className="w-full" disabled={loading}>

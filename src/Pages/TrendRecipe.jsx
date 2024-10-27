@@ -14,7 +14,7 @@ const TrendingRecipes = () => {
   const fetchRecipes = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://dummyjson.com/recipes?limit=10&skip=10&select=name,image');
+      const response = await fetch('https://dummyjson.com/recipes?limit=8&skip=8&select=name,image');
       const data = await response.json();
       setRecipes(data.recipes);
     } catch (error) {
