@@ -16,7 +16,6 @@ import {
 import { auth } from "../../utils/firebase";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from "react-router";
-import { Spinner } from '@nextui-org/react';
 
 const storage = getStorage();
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
@@ -32,23 +31,54 @@ function SignUp() {
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleImageUpload = (info) => {
     if (info.file.originFileObj) {
+      // Validate file size (max 5MB)
+      if (info.file.originFileObj.size > 5 * 1024 * 1024) {
+        setError("Image size should be less than 5MB");
+        return;
+      }
+
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!validTypes.includes(info.file.originFileObj.type)) {
+        setError("Please upload an image file (JPG, PNG, or GIF)");
+        return;
+      }
+
       setProfileImage(info.file.originFileObj);
       // Create preview URL
       const previewUrl = URL.createObjectURL(info.file.originFileObj);
       setImagePreview(previewUrl);
+      setError(""); // Clear any previous errors
     }
   };
 
   const uploadProfileImage = async (user) => {
     if (!profileImage) return null;
     
-    const storageRef = ref(storage, `profile-images/${user.uid}`);
-    await uploadBytes(storageRef, profileImage);
-    const photoURL = await getDownloadURL(storageRef);
-    return photoURL;
+    try {
+      // Create a reference to the file in Firebase Storage
+      const storageRef = ref(storage, `profile-images/${user.uid}/${Date.now()}-${profileImage.name}`);
+      
+      // Create file metadata including the content type
+      const metadata = {
+        contentType: profileImage.type,
+      };
+      
+      // Upload the file and metadata
+      const uploadTask = await uploadBytes(storageRef, profileImage, metadata);
+      
+      // Get the download URL
+      const photoURL = await getDownloadURL(uploadTask.ref);
+      
+      return photoURL;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw new Error("Failed to upload profile image");
+    }
   };
 
   const handleSignUp = async () => {
@@ -56,14 +86,17 @@ function SignUp() {
       setLoading(true);
       setError("");
 
+      // Validate inputs
+      if (!username || !email || !password || !confirmPassword) {
+        throw new Error("Please fill in all required fields");
+      }
+
       if (password !== confirmPassword) {
-        setError("Passwords do not match");
-        return;
+        throw new Error("Passwords do not match");
       }
 
       if (!acceptedTerms) {
-        setError("Please accept the terms and conditions");
-        return;
+        throw new Error("Please accept the terms and conditions");
       }
 
       // Create user account
@@ -82,10 +115,19 @@ function SignUp() {
         photoURL: photoURL
       });
 
+      // Verify the profile was updated successfully
+      if (user.displayName !== username || (photoURL && user.photoURL !== photoURL)) {
+        throw new Error("Failed to update user profile");
+      }
+
+      // Force refresh the auth token to ensure new profile data is available
+      await user.reload();
+
       // Success - wait briefly to show success state
       await new Promise(resolve => setTimeout(resolve, 1000));
       navigate("/");
     } catch (error) {
+      console.error("SignUp error:", error);
       setError(error.message);
       await new Promise(resolve => setTimeout(resolve, 1500));
     } finally {
@@ -133,8 +175,13 @@ function SignUp() {
         closable={false}
         centered
       >
-        <Spin indicator={antIcon} />
-        <div style={{ marginTop: 16 }}>Creating your account...</div>
+        <div className="flex flex-col items-center">
+          <Spin indicator={antIcon} />
+          <div className="mt-4">Creating your account...</div>
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="mt-2">Uploading image: {uploadProgress}%</div>
+          )}
+        </div>
       </Modal>
 
       <Header />
@@ -168,6 +215,15 @@ function SignUp() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading}
+              required
+            />
+            <Input
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              required
+              type="email"
             />
             <Input
               placeholder="Password"
@@ -175,12 +231,7 @@ function SignUp() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
-            />
-            <Input
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
+              required
             />
             <Input
               placeholder="Confirm Password"
@@ -188,6 +239,7 @@ function SignUp() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={loading}
+              required
             />
             
             {imagePreview && (
@@ -210,7 +262,7 @@ function SignUp() {
               disabled={loading}
             >
               <Button icon={<UploadOutlined />} className="w-full" disabled={loading}>
-                Upload Image
+                Upload Profile Picture
               </Button>
             </Upload>
           </div>
@@ -230,17 +282,17 @@ function SignUp() {
 
           <Button
             type="primary"
-            className="bg-[#B55D51] border-none mt-4"
+            className="bg-[#B55D51] border-none mt-4 w-full"
             onClick={handleSignUp}
             loading={loading}
           >
             Sign Up
           </Button>
 
-          <div className="flex items-center mt-4">
+          <div className="flex items-center mt-4 gap-2">
             <Button
               type="default"
-              className="mr-2 flex items-center"
+              className="flex-1 flex items-center justify-center"
               onClick={handleGoogleSignUp}
               disabled={loading}
               icon={<FcGoogle className="mr-2" />}
@@ -249,7 +301,7 @@ function SignUp() {
             </Button>
             <Button
               type="default"
-              className="flex items-center"
+              className="flex-1 flex items-center justify-center"
               onClick={handleFacebookSignUp}
               disabled={loading}
               icon={<FaFacebookF className="mr-2" />}

@@ -16,24 +16,48 @@ import {
   NavbarMenuItem,
   Button
 } from "@nextui-org/react";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../utils/firebase";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { ImSpoonKnife } from "react-icons/im";
 
 function Header() {
   const { user, setUser } = useContext(AuthContext) || {};
-  const isLoggedIn = user?.isLogin;
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser({
+          isLogin: true,
+          userInfo: {
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            photoURL: currentUser.photoURL
+          }
+        });
+      } else {
+        setUser({ isLogin: false, userInfo: {} });
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [setUser]);
 
   const handleSignOut = async () => {
     try {
+      setLoading(true);
       await signOut(auth);
       setUser({ isLogin: false, userInfo: {} });
       navigate('/');
     } catch (error) {
-      console.log("Error Sign Out", error);
+      console.error("Error signing out:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,7 +68,14 @@ function Header() {
     { name: "About Us", path: "/about-us" }
   ];
 
-  if (!user) {
+  const getProfileImage = () => {
+    if (user?.userInfo?.photoURL) {
+      return user.userInfo.photoURL;
+    }
+    return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7vB-49_BT-dirwttYZaeE_VByjlQ3raVJZg&s';
+  };
+
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-16">
         <Spinner size="md" />
@@ -109,23 +140,29 @@ function Header() {
       </NavbarContent>
 
       <NavbarContent justify="end">
-        {isLoggedIn ? (
+        {user?.isLogin ? (
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Avatar
                 as="button"
-                src={user?.userInfo?.photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7vB-49_BT-dirwttYZaeE_VByjlQ3raVJZg&s'}
+                src={getProfileImage()}
                 size="md"
-                
-                className="transition-transform cursor-pointer"
+                classNames={{
+                  base: "transition-transform cursor-pointer",
+                  img: "object-cover"
+                }}
                 imgProps={{
-                  className: "object-cover w-[100px] h-[50px]",
+                  onError: (e) => {
+                    e.target.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7vB-49_BT-dirwttYZaeE_VByjlQ3raVJZg&s';
+                  }
                 }}
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="User menu">
               <DropdownItem key="profile">
-                <Link to="/profile">Profile</Link>
+                <Link to="/profile" className="w-full block">
+                  Profile
+                </Link>
               </DropdownItem>
               <DropdownItem 
                 key="logout" 
@@ -156,7 +193,7 @@ function Header() {
             </Link>
           </NavbarMenuItem>
         ))}
-        {isLoggedIn && (
+        {user?.isLogin && (
           <>
             <NavbarMenuItem>
               <Link 
