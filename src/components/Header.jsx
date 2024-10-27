@@ -96,7 +96,7 @@ function Header() {
       </Link>
       <Link to="/signup">
         <Button 
-          className="bg-[#B55D51] text-white"
+          className="border bg-[#B55D51] text-white"
           size="sm"
         >
           Sign Up
@@ -146,10 +146,9 @@ function Header() {
               <Avatar
                 as="button"
                 src={getProfileImage()}
-                size="md"
-                classNames={{
+                classNames={ {
                   base: "transition-transform cursor-pointer",
-                  img: "object-cover"
+                  img: "object-cover",
                 }}
                 imgProps={{
                   onError: (e) => {
