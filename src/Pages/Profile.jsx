@@ -26,7 +26,7 @@ function Profile() {
         try {
           const imageRef = ref(storage, `profile-images/${user.uid}`);
           const photoURL = await getDownloadURL(imageRef);
-          setUser({
+          setUser() ({
             ...user,
             photoURL: photoURL
           });
