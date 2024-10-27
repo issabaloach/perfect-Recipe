@@ -47,7 +47,7 @@ function Header() {
   if (!user) {
     return (
       <div className="flex justify-center items-center h-16">
-        <Spinner size="lg" />
+        <Spinner size="md" />
       </div>
     );
   }
@@ -114,11 +114,12 @@ function Header() {
             <DropdownTrigger>
               <Avatar
                 as="button"
-                src={user?.userInfo?.photoURL || 'https://i.pravatar.cc/150?img=3'}
+                src={user?.userInfo?.photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7vB-49_BT-dirwttYZaeE_VByjlQ3raVJZg&s'}
                 size="md"
+                
                 className="transition-transform cursor-pointer"
                 imgProps={{
-                  className: "object-cover",
+                  className: "object-cover w-[100px] h-[50px]",
                 }}
               />
             </DropdownTrigger>
