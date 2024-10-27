@@ -115,7 +115,7 @@ function Header() {
               <Avatar
                 as="button"
                 src={user?.userInfo?.photoURL || 'https://i.pravatar.cc/150?img=3'}
-                size="sm"
+                size="md"
                 className="transition-transform cursor-pointer"
                 imgProps={{
                   className: "object-cover",
