@@ -1,11 +1,11 @@
+import React, { useState } from 'react';
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Input from "antd/es/input/Input";
-import { Button, Upload } from "antd";
+import { Button, Upload, Spin, Alert, Modal } from "antd";
 import { FaFacebookF } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { UploadOutlined } from "@ant-design/icons";
-import { useState } from "react";
+import { UploadOutlined, LoadingOutlined } from "@ant-design/icons";
 import {
   createUserWithEmailAndPassword,
   signInWithPopup,
@@ -16,8 +16,10 @@ import {
 import { auth } from "../../utils/firebase";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from "react-router";
+import { Spinner } from '@nextui-org/react';
 
 const storage = getStorage();
+const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 function SignUp() {
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ function SignUp() {
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleImageUpload = (info) => {
     if (info.file.originFileObj) {
@@ -51,14 +54,15 @@ function SignUp() {
   const handleSignUp = async () => {
     try {
       setLoading(true);
+      setError("");
 
       if (password !== confirmPassword) {
-        alert("Passwords do not match");
+        setError("Passwords do not match");
         return;
       }
 
       if (!acceptedTerms) {
-        alert("Please accept the terms and conditions");
+        setError("Please accept the terms and conditions");
         return;
       }
 
@@ -78,11 +82,12 @@ function SignUp() {
         photoURL: photoURL
       });
 
-      alert("Sign up successful!");
+      // Success - wait briefly to show success state
+      await new Promise(resolve => setTimeout(resolve, 1000));
       navigate("/");
     } catch (error) {
-      console.error("Error signing up:", error);
-      alert("Sign up failed. Please try again.");
+      setError(error.message);
+      await new Promise(resolve => setTimeout(resolve, 1500));
     } finally {
       setLoading(false);
     }
@@ -90,30 +95,48 @@ function SignUp() {
 
   const handleGoogleSignUp = async () => {
     try {
+      setLoading(true);
+      setError("");
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      alert("Google sign up successful!");
+      await new Promise(resolve => setTimeout(resolve, 1000));
       navigate("/");
     } catch (error) {
-      console.error("Error signing up with Google:", error);
-      alert("Google sign up failed. Please try again.");
+      setError(error.message);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleFacebookSignUp = async () => {
     try {
+      setLoading(true);
+      setError("");
       const provider = new FacebookAuthProvider();
       await signInWithPopup(auth, provider);
-      alert("Facebook sign up successful!");
+      await new Promise(resolve => setTimeout(resolve, 1000));
       navigate("/");
     } catch (error) {
-      console.error("Error signing up with Facebook:", error);
-      alert("Facebook sign up failed. Please try again.");
+      setError(error.message);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div>
+      <Modal
+        open={loading}
+        footer={null}
+        closable={false}
+        centered
+      >
+        <Spin indicator={antIcon} />
+        <div style={{ marginTop: 16 }}>Creating your account...</div>
+      </Modal>
+
       <Header />
 
       <div className="container mx-auto mt-9 mb-9 max-w-screen-lg px-4 mt-8 flex flex-row">
@@ -126,35 +149,52 @@ function SignUp() {
           <h1 className="text-3xl font-bold text-gray-900">
             Want To Join Our Family
           </h1>
+
+          {error && (
+            <Alert
+              message="Error"
+              description={error}
+              type="error"
+              showIcon
+              closable
+              className="mt-4"
+              onClose={() => setError("")}
+            />
+          )}
+
           <div className="flex flex-col gap-3 mt-5">
             <Input
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={loading}
             />
             <Input
               placeholder="Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
             />
             <Input
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
             <Input
               placeholder="Confirm Password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={loading}
             />
             
             {imagePreview && (
               <div className="mb-4">
                 <img 
                   src={imagePreview} 
-                  alt="Add Image" 
+                  alt="Profile Preview" 
                   className="w-24 h-24 rounded-full object-cover mx-auto"
                 />
               </div>
@@ -167,9 +207,10 @@ function SignUp() {
               accept="image/*"
               showUploadList={false}
               beforeUpload={() => false}
+              disabled={loading}
             >
-              <Button icon={<UploadOutlined />} className="w-full">
-                Upload Profile Picture
+              <Button icon={<UploadOutlined />} className="w-full" disabled={loading}>
+                Upload Image
               </Button>
             </Upload>
           </div>
@@ -180,8 +221,11 @@ function SignUp() {
               checked={acceptedTerms}
               onChange={(e) => setAcceptedTerms(e.target.checked)}
               className="mr-2"
+              disabled={loading}
             />
-            <label>I accept the terms and conditions</label>
+            <label className={loading ? "text-gray-400" : ""}>
+              I accept the terms and conditions
+            </label>
           </div>
 
           <Button
@@ -199,16 +243,18 @@ function SignUp() {
               className="mr-2 flex items-center"
               onClick={handleGoogleSignUp}
               disabled={loading}
+              icon={<FcGoogle className="mr-2" />}
             >
-              <FcGoogle className="mr-2" /> Sign Up with Google
+              Sign Up with Google
             </Button>
             <Button
               type="default"
               className="flex items-center"
               onClick={handleFacebookSignUp}
               disabled={loading}
+              icon={<FaFacebookF className="mr-2" />}
             >
-              <FaFacebookF className="mr-2" /> Sign Up with Facebook
+              Sign Up with Facebook
             </Button>
           </div>
         </div>
