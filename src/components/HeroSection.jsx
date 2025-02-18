@@ -13,9 +13,9 @@ function HeroSection() {
 
   const handleSignOut = () => {
     try {
-       signOut(auth);
+      signOut(auth);
       setUser({ isLogin: false, userInfo: {} });
-      navigate('/');
+      navigate("/");
     } catch (error) {
       console.log("Error Sign Out", error);
     }
@@ -32,19 +32,22 @@ function HeroSection() {
         <h2 className="text-2xl md:text-3xl font-semibold mb-4">
           A <span className="font-bold text-[#B55D51]">Food</span> Journey
         </h2>
-        <p className="mb-3">
-          Welcome to Perfect Recipe, your go-to destination for finding and
-          sharing the best recipes from around the world. Whether you're an
-          experienced chef or just starting your culinary journey, we offer a
-          wide variety of mouth-watering recipes for every skill level and
-          occasion.
+        <p className="mb-4 text-gray-600 text-sm">
+          Welcome to Perfect Recipe -
+           your ultimate destination for discovering
+          and sharing delicious recipes from around the world.
+           Whether you're a pro or a beginner, 
+           find the perfect dish for any occasion!
         </p>
         {isLoggedIn ? (
-         <>
-         <button onClick={handleSignOut} className="text-sm bg-[#B55D51] text-white px-6 py-3 rounded-md flex items-center">
-           Sign Out
-         </button>
-         </>
+          <>
+            <button
+              onClick={handleSignOut}
+              className="text-sm bg-[#B55D51] text-white px-6 py-3 rounded-md flex items-center"
+            >
+              Sign Out
+            </button>
+          </>
         ) : (
           <>
             <Link to="/signup">
@@ -54,8 +57,8 @@ function HeroSection() {
             </Link>
             <Link to="/login">
               <p>
-                Do You Have An Account
-                <span className="font-bold text-[#B55D51]">Log In</span>
+                Do You Have An Account:
+                <span className="ml-2 font-bold text-[#B55D51]">Log In</span>
               </p>
             </Link>
           </>
@@ -63,9 +66,9 @@ function HeroSection() {
       </div>
       <div className="absolute bottom-0 right-0 w-1/2 h-1/2  rounded-tl-md"></div>
       <img
-        src="https://pallifood.com/wp-content/uploads/2019/08/ace218a4f4b81019717b67dffe6dfa45.png"
+        src="https://images.pexels.com/photos/1640773/pexels-photo-1640773.jpeg?auto=compress&cs=tinysrgb&w=400"
         alt="Featured Dish"
-        className="absolute  h-[300px] bottom-8 right-8 rounded shadow-lg"
+        className="absolute  h-[300px] bottom-8 right-8 rounded-md shadow-xl w-full md:max-w-sm"
       />
     </div>
   );
